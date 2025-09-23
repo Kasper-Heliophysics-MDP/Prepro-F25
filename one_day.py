@@ -1,12 +1,27 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+import numpy as np
+from astropy.io import fits
+import gzip
+import re
+from typing import List
+import io
+from tqdm import tqdm
 
 BASE_URL = "https://soleil.i4ds.ch/solarradio/data/2002-20yy_Callisto/"
 
-import re
-from typing import List
+def download_fits_from_gz(url: str) -> np.ndarray:
+    """Download a .fit.gz URL and return the FITS data as a numpy array."""
+    r = requests.get(url, stream=True)
+    r.raise_for_status()
 
+    # Decompress in memory
+    with gzip.GzipFile(fileobj=io.BytesIO(r.content)) as gz:
+        with fits.open(io.BytesIO(gz.read())) as hdul:
+            data = hdul[0].data
+            return np.array(data)
+        
 def circular_sort(files: List[str], offset: str) -> List[str]:
     """
     The times on eCallisto are in UTC. So the beginning of the day locally
@@ -50,7 +65,7 @@ def circular_sort(files: List[str], offset: str) -> List[str]:
     
     return sorted_files
 
-def list_files(station: str, year: int, month: int, day: int, time: str = "000000"):
+def one_day(station: str, year: int, month: int, day: int, time: str = "000000"):
     """
     Fetch all file links from a given URL (assuming it's a directory listing).
     
@@ -87,9 +102,28 @@ def list_files(station: str, year: int, month: int, day: int, time: str = "00000
     station_files = [f for f in files if station in f] #extract only the files at this station
     sorted_files = circular_sort(station_files, time) #put them in order
 
-    return sorted_files
+    arrays = []
+    for url in tqdm(sorted_files, desc="Downloading FITS files"):
+        arr = download_fits_from_gz(url)
+        if arr is not None:
+            arrays.append(arr)
+
+    if not arrays:
+        raise ValueError("No valid FITS data found.")
+    
+    # Concatenate along time axis (axis=0)
+    big_array = np.concatenate(arrays, axis=1)
+    big_array = np.flipud(big_array)
+    return big_array
 
 # Example usage:
 if __name__ == "__main__":
-    print(list_files("ALASKA-ANCHORAGE", 2025, 5, 13, "130000"))
+    station = "MONGOLIA-UB"
+    year = 2025
+    month = 5
+    day = 13
+    data = one_day(station, year, month, day, "130000")
+    file_name = "spec-" + station + "-" + str(month) + "-" + str(day) + "-" + str(year) + ".npy"
+    np.save(file_name, data)
+
 

@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Ones that Callen put in here
+*.npy
+
 # C extensions
 *.so
 
