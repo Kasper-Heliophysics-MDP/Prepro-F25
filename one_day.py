@@ -1,3 +1,17 @@
+"""
+===============================================================================
+File: one_day.py
+Author: Callen Fields (fcallen@umich.edu)
+Date: 2025-09-22
+Group: University of Michigan SunRISE Mission
+
+Description:
+This script downloads all eCallisto recordings from a given station for a 
+specific day, orders them in time (circularly starting from a specified UTC 
+offset), concatenates them into a single 2D numpy array (frequency x time), 
+and saves the resulting spectrogram as a .npy file. 
+===============================================================================
+"""
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
@@ -8,6 +22,7 @@ import re
 from typing import List
 import io
 from tqdm import tqdm
+import sys
 
 BASE_URL = "https://soleil.i4ds.ch/solarradio/data/2002-20yy_Callisto/"
 
@@ -67,7 +82,8 @@ def circular_sort(files: List[str], offset: str) -> List[str]:
 
 def one_day(station: str, year: int, month: int, day: int, time: str = "000000"):
     """
-    Fetch all file links from a given URL (assuming it's a directory listing).
+    Collects all eCallisto recordings from a given station on a given day
+    Puts them in order, concatenates them, and returns them as a numpy array
     
     Args:
         station (str): The name of the eCallisto station 
@@ -77,7 +93,7 @@ def one_day(station: str, year: int, month: int, day: int, time: str = "000000")
         time (str): UTC time that designates the beginning of the day in "HHMMSS" format
         
     Returns:
-        list[str]: A list of absolute file URLs found on the page.
+        numpy arr: 2D spectrogram over all files found
     """
     #get the url from the date
     path = f"{year:04d}/{month:02d}/{day:02d}/"
@@ -118,10 +134,14 @@ def one_day(station: str, year: int, month: int, day: int, time: str = "000000")
 
 # Example usage:
 if __name__ == "__main__":
-    station = "MONGOLIA-UB"
-    year = 2025
-    month = 5
-    day = 13
+    if len(sys.argv) < 5:
+        print("Usage: python one_day.py <station> <month> <day> <year>")
+        sys.exit(1)
+
+    station = sys.argv[1]
+    year = sys.argv[4]
+    month = sys.argv[2]
+    day = sys.argv[3]
     data = one_day(station, year, month, day, "130000")
     file_name = "spec-" + station + "-" + str(month) + "-" + str(day) + "-" + str(year) + ".npy"
     np.save(file_name, data)

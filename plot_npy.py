@@ -1,3 +1,15 @@
+"""
+===============================================================================
+File: plot_spectrogram.py
+Author: Callen Fields (fcallen@umich.edu)
+Date: 2025-09-22
+Group: University of Michigan SunRISE Mission
+
+Description:
+This script loads a 2D spectrogram stored as a .npy file and plots it using 
+matplotlib. The spectrogram is displayed with frequency on the y-axis and 
+time on the x-axis, with intensity represented by color. 
+"""
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
