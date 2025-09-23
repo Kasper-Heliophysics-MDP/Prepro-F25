@@ -1,6 +1,3 @@
-# Prepro-F25
-Preprocessing methods implemented by the Fall 2025 cohort
-
 # Prepro-F25 – University of Michigan SunRISE Mission
 
 **Authors:** Callen Fields, Aashi Mishra  
@@ -22,27 +19,27 @@ This repository contains Python scripts for downloading, processing, and visuali
   - `one_day(station, year, month, day, time="000000")`: Downloads, orders, concatenates, and flips arrays for a single day.
 - **Usage:**
 
-`python one_day.py <station> <month> <day> <year>` 
+     `python one_day.py <station> <month> <day> <year>` 
 
-Example:
+- **Example:**
 
-`python one_day.py ALASKA-ANCHORAGE 5 13 2025`
+    `python one_day.py ALASKA-ANCHORAGE 5 13 2025`
 
-This saves a file called spec-ALASKA-ANCHORAGE-5-13-2025.npy.
+    This saves a file called spec-ALASKA-ANCHORAGE-5-13-2025.npy.
 
 ### `plot_spectrogram.py`
 
 - **Purpose:** Load a `.npy` spectrogram file and display it using matplotlib.
 - **Key Function:**
-    - plot_spectrogram(big_array: np.ndarray, cmap="viridis"): Plots a 2D spectrogram with frequency vs. time.
+    - `plot_spectrogram(big_array: np.ndarray, cmap="viridis")`: Plots a 2D spectrogram with frequency vs. time.
 
 - **Usage:**
 
-`python plot_spectrogram.py <file_path>`
+    `python plot_spectrogram.py <file_path>`
 
-Example:
+- **Example:**
 
-python plot_spectrogram.py spec-CALLISTO_Alaska-5-13-2025.npy
+    `python plot_spectrogram.py spec-CALLISTO_Alaska-5-13-2025.npy`
 
 ## Requirements
 
