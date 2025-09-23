@@ -39,7 +39,7 @@ This repository contains Python scripts for downloading, processing, and visuali
 
 - **Example:**
 
-    `python plot_spectrogram.py spec-CALLISTO_Alaska-5-13-2025.npy`
+    `python plot_spectrogram.py spec-ALASKA-ANCHORAGE-5-13-2025.npy`
 
 ## Requirements
 

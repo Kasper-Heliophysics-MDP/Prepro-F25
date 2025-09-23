@@ -1,7 +1,7 @@
 """
 ===============================================================================
 File: one_day.py
-Author: Callen Fields (fcallen@umich.edu)
+Author: Callen Fields (fcallen@umich.edu), Aashi Mishra (aashim@umich.edu)
 Date: 2025-09-22
 Group: University of Michigan SunRISE Mission
 
