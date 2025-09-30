@@ -123,8 +123,8 @@ def find_bursts(arr, burst_list, filename, results, current_idx):
             # Clip burst to file boundaries
             start_idx = max(0, int((bstart_sec - file_start_sec) * 4))
             end_idx = min(nx - 1, int((bend_sec - file_start_sec) * 4))
-            start_idx = start_idx + current_idx - 4 #subtract one second
-            end_idx = end_idx + current_idx + 4 #add one second
+            start_idx = start_idx + current_idx - 4*60 #subtract 60 seconds
+            end_idx = end_idx + current_idx + 4*60 #add 60 seconds
             results.append({
                 "burst": burst,
                 "start_idx": start_idx,
@@ -284,7 +284,7 @@ if __name__ == "__main__":
 
     station, year, month, day, start_time, save_burst_labels = parse_args(sys.argv)
 
-    save_file_post_fix = "-" + station + "-" + str(month) + "-" + str(day) + "-" + str(year) + ".npy"
+    save_file_post_fix = "-" + station + "-" + str(f"{int(month):04d}") + "-" + str(f"{int(day):04d}") + "-" + str(f"{int(year):04d}") + ".npy"
     if save_burst_labels:
         data, indices = one_day(station, year, month, day, start_time, extract_bursts(station, year, month, day))
         np.save("labels" + save_file_post_fix, indices) 
