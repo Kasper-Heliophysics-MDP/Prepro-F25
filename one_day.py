@@ -284,7 +284,7 @@ if __name__ == "__main__":
 
     station, year, month, day, start_time, save_burst_labels = parse_args(sys.argv)
 
-    save_file_post_fix = "-" + station + "-" + str(f"{int(month):04d}") + "-" + str(f"{int(day):04d}") + "-" + str(f"{int(year):04d}") + ".npy"
+    save_file_post_fix = "-" + station + "-" + str(f"{int(month):02d}") + "-" + str(f"{int(day):02d}") + "-" + str(f"{int(year):04d}") + ".npy"
     if save_burst_labels:
         data, indices = one_day(station, year, month, day, start_time, extract_bursts(station, year, month, day))
         np.save("labels" + save_file_post_fix, indices) 
