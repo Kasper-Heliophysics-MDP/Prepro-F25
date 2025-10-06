@@ -5,6 +5,7 @@ __pycache__/
 
 # Ones that Callen put in here
 *.npy
+*.png
 
 # C extensions
 *.so
