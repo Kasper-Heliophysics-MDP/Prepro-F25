@@ -61,6 +61,38 @@ This repository contains Python scripts for downloading, processing, and visuali
     `Noise mean: 133.636`   
     `SNR: -0.01 dB` 
 
+### `AGBS.py`
+
+- **Purpose:** Filter out noise in a solar spectrogram using Adaptive Gaussian Background Subtraction
+- **Key Functions:**
+  - `AGBS(spectrogram, seconds_window=60)`: Compute AGBS given a spectrogram and length of the rolling mean window
+- **Usage:**
+
+    `python AGBS.py <spectrogram_file_path>`
+
+- **Example:**
+
+    `python AGBS.py spec-MONGOLIA-UB-05-13-2025.npy`
+
+    This will output the file:
+    `spec-MONGOLIA-UB-05-13-2025-AGBS.npy`
+
+### `AMF.py`
+
+- **Purpose:** Filter out noise in a solar spectrogram using Adaptive Median Filtering
+- **Key Functions:**
+  - `AMF(spectrogram, radius=15)`: Compute AMF given a spectrogram and maximum kernel size
+- **Usage:**
+
+    `python AMF.py <spectrogram_file_path>`
+
+- **Example:**
+
+    `python AMF.py spec-MONGOLIA-UB-05-13-2025-AGBS.npy`
+
+    This will output the file:
+    `spec-MONGOLIA-UB-05-13-2025-AGBS-AMF.npy`
+
 ## Requirements
 
 Install dependencies with:

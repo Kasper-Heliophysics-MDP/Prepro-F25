@@ -1,3 +1,18 @@
+'''
+===============================================================================
+File: AMF.py
+Author: Callen Fields (fcallen@umich.edu), Aashi Mishra (aashim@umich.edu)
+Date: 2025-10-6
+Group: University of Michigan SunRISE Mission
+
+Description:
+Performs adaptive medium filtering over a given spectrogram. At each pixel,
+adaptively forms a kernel based off the angle of least change and a maximum
+pixel distance of 15. Replaces each pixel value with the median of this kernel.
+
+https://www.swsc-journal.org/articles/swsc/pdf/2018/01/swsc170092.pdf
+===============================================================================
+'''
 import numpy as np
 from scipy.ndimage import sobel, map_coordinates
 import sys
@@ -5,22 +20,21 @@ from tqdm import tqdm
 
 def AMF(spec, radius=15):
     """
-    Apply a directional median filter along the local gradient (normal) direction.
-
-    Parameters
-    ----------
-    spec : np.ndarray
-        2D array (frequency x time)
-    max_dist : int
-        Maximum Euclidean distance (in pixels) to include in kernel.
-    angle_tol : float
-        Angular tolerance (radians) for points considered "along" the normal vector.
-
-    Returns
-    -------
-    filtered : np.ndarray
-        Directionally median-filtered spectrogram.
-    """
+    Adaptive Median Filtering
+    Partial derivatives are calculated with a Sobel kernel.
+    instead of using integer pixel coordinates, map_coordinates interpolates
+    values between pixels to make the math work out better.
+    For example, if you are at pixel (5, 5) and the angle is 30 degrees,
+    the first pixel added to the kernel is (5 + (sqrt(3)/2), 5 + (1/2)).
+    Bilinear interpolation is used to index into images at float coordinates.
+    
+    Args:
+        spec (np.Arr): Frequency x Time spectrogram
+        radius (int): maximum euclidean distance between the edge of the kernel and the starting pixel
+        
+    Returns:
+        numpy arr: processed 2D spectrogram
+    """    
     # Compute gradients (Sobel kernel for partial derivative estimates)
     Gx = sobel(spec, axis=1, mode='reflect')
     Gy = sobel(spec, axis=0, mode='reflect')

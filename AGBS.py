@@ -1,6 +1,6 @@
 '''
 ===============================================================================
-File: compute_snr.py
+File: AGBS.py
 Author: Callen Fields (fcallen@umich.edu), Aashi Mishra (aashim@umich.edu)
 Date: 2025-10-6
 Group: University of Michigan SunRISE Mission
@@ -21,7 +21,7 @@ UNITS_PER_SECOND = 4
 
 def AGBS(spec, seconds_window=60):
     """
-    Performs AGBS over a given spectrogram.
+    Adaptive Gaussian Background Subtraction
     Local mean is calculated via convolution with all ones.
     
     Args:
