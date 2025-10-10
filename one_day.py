@@ -38,7 +38,7 @@ def download_fits_from_gz(url: str) -> np.ndarray:
             data = hdul[0].data
             return np.array(data)
         
-def circular_sort(files: List[str], offset: str) -> List[str]:
+def circular_sort(files: List[str], offset: str, url: str) -> List[str]:
     """
     The times on eCallisto are in UTC. So the beginning of the day locally
     is at an offset time, and the times are sequential from then.
@@ -47,6 +47,7 @@ def circular_sort(files: List[str], offset: str) -> List[str]:
     Args:
         files: list of filenames
         offset: string "HHMMSS" (UTC offset start)
+        url: just putting the url to print in case of an error
         
     Returns:
         List[str]: circularly sorted list of filenames
@@ -58,6 +59,19 @@ def circular_sort(files: List[str], offset: str) -> List[str]:
 
     # regex to extract the middle part with time
     time_re = re.compile(r"_(\d{6})_")
+
+    #testing on the first file
+    match = time_re.search(files[0])
+
+    #some of the older files have an i (intensity after the time)
+    if match is None:
+        time_re = re.compile(r"_(\d{6})i")
+        match = time_re.search(files[0])
+
+    #error if there's some other time format that we haven't noticed
+    if match is None:
+        print(f"ERROR: No matching time formats found at: {url}")
+        exit(0)
     
     # map files to (time_in_seconds, filename)
     time_file_pairs = []
@@ -154,6 +168,7 @@ def one_day(station: str, year: int, month: int, day: int, time: str = "000000",
     path = f"{int(year):04d}/{int(month):02d}/{int(day):02d}/"
     url = urljoin(BASE_URL.rstrip("/") + "/", path)
 
+    print(url)
     #extract a list of all files
     response = requests.get(url)
     response.raise_for_status()  # raise error if bad request
@@ -171,12 +186,18 @@ def one_day(station: str, year: int, month: int, day: int, time: str = "000000",
         files.append(full_url)
 
     station_files = [f for f in files if station in f] #extract only the files at this station
-    sorted_files = circular_sort(station_files, time) #put them in order
+    if len(station_files) == 0:
+        print(f"ERROR: No match found for {station} found at {str(url)}")
+        exit(0)
+
+    sorted_files = circular_sort(station_files, time, url) #put them in order
 
     arrays = []
     burst_indices = []
     current_idx = 0
+    
     for url in tqdm(sorted_files, desc="Downloading FITS files"):
+
         arr = download_fits_from_gz(url)
         if arr is not None:
 
