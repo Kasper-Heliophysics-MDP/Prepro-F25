@@ -35,39 +35,43 @@ def AMF(spec, radius=15):
     Returns:
         numpy arr: processed 2D spectrogram
     """    
-    # Compute gradients (Sobel kernel for partial derivative estimates)
+    spec = np.asarray(spec, dtype=np.float32)  # reduce memory footprint
+
+    # Gradients
     Gx = sobel(spec, axis=1, mode='reflect')
     Gy = sobel(spec, axis=0, mode='reflect')
-
-    # Compute normal vector angles
-    theta = np.arctan2(Gy, Gx) + np.pi / 2  # normal direction (angle of least change)
+    theta = np.arctan2(Gy, Gx) + np.pi / 2  # normal direction
 
     nrows, ncols = spec.shape
-    filtered = np.zeros_like(spec)
+    filtered = np.zeros_like(spec, dtype=np.float32)
 
     # Precompute displacements along the normal direction
-    offsets = np.linspace(-radius, radius, 2 * radius + 1)
+    offsets = np.arange(-radius, radius + 1, dtype=np.float32)
     dx = np.cos(theta)
     dy = np.sin(theta)
 
-    # For speed: iterate coarsely over the image grid
-    rows, cols = np.indices(spec.shape)
+    # Process by chunks to avoid excessive memory
+    chunk_size = 2000  # adjust based on available RAM
+    for start in tqdm(range(0, nrows, chunk_size), desc="AMF filtering"):
+        end = min(start + chunk_size, nrows)
+        rows = np.arange(start, end)[:, None]
+        cols = np.arange(ncols)[None, :]
 
-    for k in tqdm(range(-radius, radius + 1)):
-        # Displace coordinates along the normal vector
-        rr = rows + k * dy
-        cc = cols + k * dx
+        # We'll collect samples for median computation, but only in this chunk
+        local_vals = []
 
-        # Sample using bilinear interpolation
-        values = map_coordinates(spec, [rr, cc], order=1, mode='reflect')
+        for k in offsets:
+            rr = rows + k * dy[start:end, :]
+            cc = cols + k * dx[start:end, :]
+            vals = map_coordinates(spec, [rr, cc], order=1, mode='reflect')
+            local_vals.append(vals)
 
-        if k == -radius:
-            stack = np.expand_dims(values, axis=-1)
-        else:
-            stack = np.concatenate((stack, np.expand_dims(values, axis=-1)), axis=-1)
+        # Stack and compute median for this chunk only
+        stack_chunk = np.stack(local_vals, axis=-1)
+        filtered[start:end, :] = np.median(stack_chunk, axis=-1)
 
-    # Compute median across the kernel dimension
-    filtered = np.median(stack, axis=-1)
+        # Explicitly free memory before next chunk
+        del stack_chunk, local_vals, rr, cc, vals
 
     return filtered
 
