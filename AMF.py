@@ -18,7 +18,7 @@ from scipy.ndimage import sobel, map_coordinates
 import sys
 from tqdm import tqdm
 
-def AMF(spec, radius=15):
+def AMF(spec, radius=15, chunk_size=5000):
     """
     Adaptive Median Filtering
     Partial derivatives are calculated with a Sobel kernel.
@@ -35,43 +35,38 @@ def AMF(spec, radius=15):
     Returns:
         numpy arr: processed 2D spectrogram
     """    
-    spec = np.asarray(spec, dtype=np.float32)  # reduce memory footprint
+    spec = spec.astype(np.float32, copy=False)
 
-    # Gradients
+    # Gradients (Sobel)
     Gx = sobel(spec, axis=1, mode='reflect')
     Gy = sobel(spec, axis=0, mode='reflect')
-    theta = np.arctan2(Gy, Gx) + np.pi / 2  # normal direction
+    theta = np.arctan2(Gy, Gx) + np.pi / 2
 
     nrows, ncols = spec.shape
-    filtered = np.zeros_like(spec, dtype=np.float32)
+    filtered = np.zeros_like(spec)
 
-    # Precompute displacements along the normal direction
-    offsets = np.arange(-radius, radius + 1, dtype=np.float32)
     dx = np.cos(theta)
     dy = np.sin(theta)
 
-    # Process by chunks to avoid excessive memory
-    chunk_size = 2000  # adjust based on available RAM
-    for start in tqdm(range(0, nrows, chunk_size), desc="AMF filtering"):
-        end = min(start + chunk_size, nrows)
-        rows = np.arange(start, end)[:, None]
-        cols = np.arange(ncols)[None, :]
+    rows = np.arange(nrows)[:, None]
+    cols = np.arange(ncols)[None, :]
 
-        # We'll collect samples for median computation, but only in this chunk
-        local_vals = []
+    # Process in time chunks to avoid huge arrays
+    for start in tqdm(range(0, ncols, chunk_size), desc="AMF filtering"):
+        end = min(start + chunk_size, ncols)
+        # We'll collect all offset samples for this chunk
+        samples = []
 
-        for k in offsets:
-            rr = rows + k * dy[start:end, :]
-            cc = cols + k * dx[start:end, :]
-            vals = map_coordinates(spec, [rr, cc], order=1, mode='reflect')
-            local_vals.append(vals)
+        for k in range(-radius, radius + 1):
+            rr = rows + k * dy[:, start:end]
+            cc = cols[:, start:end] + k * dx[:, start:end]
+            values = map_coordinates(spec, [rr, cc], order=1, mode='reflect')
+            samples.append(values)
 
-        # Stack and compute median for this chunk only
-        stack_chunk = np.stack(local_vals, axis=-1)
-        filtered[start:end, :] = np.median(stack_chunk, axis=-1)
-
-        # Explicitly free memory before next chunk
-        del stack_chunk, local_vals, rr, cc, vals
+        # Stack along small third dimension
+        stack = np.stack(samples, axis=-1)
+        filtered[:, start:end] = np.median(stack, axis=-1)
+        del stack, samples  # free memory
 
     return filtered
 
